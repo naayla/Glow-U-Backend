@@ -8,6 +8,10 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 5000;
 
+app.get("/", (req, res) => {
+  res.json({ message: "Backend is running!" });
+});
+
 // Middleware
 app.use(cors({
   origin: '*',
@@ -130,4 +134,5 @@ app.post("/api/subscribe", async (req, res) => {
 
 app.listen(port, () => {
   console.log(`Server berjalan di http://localhost:${port}`);
+
 });
