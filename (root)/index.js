@@ -12,6 +12,10 @@ app.get("/", (req, res) => {
   res.json({ message: "Backend is running!" });
 });
 
+app.get("/api/hello", (req, res) => {
+  res.json({ message: "Hello from API!" });
+});
+
 // Middleware
 app.use(cors({
   origin: '*',
@@ -136,3 +140,4 @@ app.listen(port, () => {
   console.log(`Server berjalan di http://localhost:${port}`);
 
 });
+
