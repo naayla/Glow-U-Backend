@@ -9,45 +9,34 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 // --- Middleware ---
-app.use(cors({
-  origin: '*',
-  methods: ["GET", "POST"],
-  credentials: true,
-}));
+app.use(cors({ origin: '*', methods: ["GET", "POST"], credentials: true }));
 app.use(express.json());
 
-// --- Database connection ---
-const db = new pg.Pool({
-  connectionString: process.env.DATABASE_URL,
-});
+// --- Database Connection ---
+const db = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 
 // --- Routes ---
 
 // Root
-app.get("/", (req, res) => {
-  res.json({ message: "Backend is running!" });
-});
+app.get("/", (req, res) => res.json({ message: "Backend is running!" }));
 
 // Test API
-app.get("/api/hello", (req, res) => {
-  res.json({ message: "Hello from API!" });
-});
+app.get("/api/hello", (req, res) => res.json({ message: "Hello from API!" }));
 
 // 1. REGISTER
 app.post("/api/register", async (req, res) => {
   const { name, email, password } = req.body;
   try {
     const checkUser = await db.query("SELECT * FROM users WHERE email = $1", [email]);
-    if (checkUser.rows.length > 0) {
-      return res.status(400).json({ message: "Email sudah terdaftar!" });
-    }
+    if (checkUser.rows.length > 0) return res.status(400).json({ message: "Email sudah terdaftar!" });
+
     const newUser = await db.query(
       "INSERT INTO users (name, email, password, role) VALUES ($1, $2, $3, 'user') RETURNING *",
       [name, email, password]
     );
     res.json({ message: "Register Berhasil!", user: newUser.rows[0] });
   } catch (err) {
-    console.error(err.message);
+    console.error(err);
     res.status(500).json({ message: "Server Error" });
   }
 });
@@ -57,23 +46,20 @@ app.post("/api/login", async (req, res) => {
   const { email, password } = req.body;
   try {
     const user = await db.query("SELECT * FROM users WHERE email = $1", [email]);
-    if (user.rows.length === 0) {
-      return res.status(401).json({ message: "Email tidak ditemukan!" });
-    }
-    if (password !== user.rows[0].password) {
-      return res.status(401).json({ message: "Password salah!" });
-    }
-    res.json({ 
-      message: "Login Berhasil!", 
-      user: { 
+    if (user.rows.length === 0) return res.status(401).json({ message: "Email tidak ditemukan!" });
+    if (password !== user.rows[0].password) return res.status(401).json({ message: "Password salah!" });
+
+    res.json({
+      message: "Login Berhasil!",
+      user: {
         id: user.rows[0].id,
-        name: user.rows[0].name, 
-        email: user.rows[0].email, 
-        role: user.rows[0].role 
-      } 
+        name: user.rows[0].name,
+        email: user.rows[0].email,
+        role: user.rows[0].role
+      }
     });
   } catch (err) {
-    console.error(err.message);
+    console.error(err);
     res.status(500).json({ message: "Server Error" });
   }
 });
@@ -89,7 +75,7 @@ app.get("/api/reviews", async (req, res) => {
     `);
     res.json(allReviews.rows);
   } catch (err) {
-    console.error(err.message);
+    console.error(err);
     res.status(500).json({ message: "Gagal mengambil review" });
   }
 });
@@ -104,7 +90,7 @@ app.post("/api/reviews", async (req, res) => {
     );
     res.json(newReview.rows[0]);
   } catch (err) {
-    console.error(err.message);
+    console.error(err);
     res.status(500).json({ message: "Gagal mengirim review" });
   }
 });
@@ -114,18 +100,14 @@ app.post("/api/subscribe", async (req, res) => {
   const { email } = req.body;
   try {
     const check = await db.query("SELECT * FROM subscribers WHERE email = $1", [email]);
-    if (check.rows.length > 0) {
-      return res.status(400).json({ message: "Email sudah terdaftar, Bestie!" });
-    }
+    if (check.rows.length > 0) return res.status(400).json({ message: "Email sudah terdaftar, Bestie!" });
     await db.query("INSERT INTO subscribers (email) VALUES ($1)", [email]);
     res.json({ message: "Berhasil berlangganan!" });
   } catch (err) {
-    console.error(err.message);
+    console.error(err);
     res.status(500).json({ message: "Gagal subscribe" });
   }
 });
 
-// --- Start server ---
-app.listen(port, () => {
-  console.log(Server berjalan di http://localhost:${port});
-});
+// --- Start Server ---
+app.listen(port, () => console.log(Server berjalan di http://localhost:${port}));
